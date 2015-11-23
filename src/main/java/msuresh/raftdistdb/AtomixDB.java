@@ -13,10 +13,19 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 /**
- *
+ * The main driver class for AtomixDDB.
  * @author muthukumarsuresh
  */
 public class AtomixDB {
+    /**
+     * Main Method which runs a Apache CLI which takes 3 different options for the 3 operations <br>
+     * @param args <br>
+     * Options : <br>
+     * -setup numberOfReplicas numberOfPartitions -- which sets the system given thenumber of partitions number of replicas per partition<br>
+     * -set key Value -- adds a key value pair to the DB<br>
+     * -get key -- returns a value for the key if it exists<br>
+     * @throws InterruptedException 
+     */
     public static void main(String [] args) throws InterruptedException{
         Options options = new Options();
         Option opt = new Option("setup", true, "Sets up the replica that run the Raft Consensus Algorithm." );
@@ -48,17 +57,30 @@ public class AtomixDB {
         System.out.println( "Unexpected exception:" + exp.getMessage() );
     }
     }
-
+    /**
+     * Method to setup server. Internally calls RaftCluster to setup the cluster with replicas and partition managers
+     * @param noOfServers
+     * @param noOfReplicas
+     * @throws InterruptedException 
+     */
     private static void setupServers(int noOfServers, int noOfReplicas) throws InterruptedException {
         RaftCluster.createCluster(noOfServers, noOfReplicas);
         
     }
-
+    /**
+     * adds key to DB
+     * @param key
+     * @param value 
+     */
     private static void addKey(String key, String value) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
-    private static String addKey(String parseInt) {
+    /**
+     * returns a value for the key if it exists
+     * @param parseInt
+     * @return String
+     */
+    private static String addKey(String key) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

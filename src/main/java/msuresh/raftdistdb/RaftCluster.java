@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- *
+ * Cluster class for managing the Raft replicas and cluster managers 
  * @author muthukumarsuresh
  */
 public class RaftCluster {
@@ -41,6 +41,12 @@ public class RaftCluster {
        
 
     } 
+    /**
+     * creates the cluster 
+     * @param nodesInCluster
+     * @param numberOfPartitions
+     * @throws InterruptedException 
+     */
     public static void createCluster(int nodesInCluster, int numberOfPartitions) throws InterruptedException{
         int startingPort = portId;
         List<Address> members = Arrays.asList(
