@@ -5,6 +5,8 @@
  */
 package msuresh.raftdistdb;
 
+import java.io.FileNotFoundException;
+import java.util.concurrent.ExecutionException;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -26,13 +28,13 @@ public class AtomixDB {
      * -get key -- returns a value for the key if it exists<br>
      * @throws InterruptedException 
      */
-    public static void main(String [] args) throws InterruptedException{
+    public static void main(String [] args) throws InterruptedException, ExecutionException, FileNotFoundException{
         Options options = new Options();
         Option opt = new Option("setup", true, "Sets up the replica that run the Raft Consensus Algorithm." );
-        opt.setArgs(2);
+        opt.setArgs(3);
         options.addOption(opt);
         opt = new Option("set", true, " Add a key-value pair into the Distributed Database.");
-        opt.setArgs(2);
+        opt.setArgs(3);
         options.addOption(opt);
         opt = new Option("get", true, "Given a key gets the value from the DB");
         opt.setArgs(2);
@@ -43,36 +45,37 @@ public class AtomixDB {
         line = parser.parse(options, args);
         if(line.hasOption("setup")){
             String[] vals = line.getOptionValues("setup");
-            setupServers(Integer.parseInt(vals[0]), Integer.parseInt(vals[1]));
+            System.out.println(vals[0]);
+            RaftCluster.createCluster(vals[0], Integer.parseInt(vals[1]), Integer.parseInt(vals[2]));
         }
         else if(line.hasOption("set")){
             String[] vals = line.getOptionValues("set");
-            addKey(vals[0], vals[1]);
+            addKey(vals[0], vals[1], vals[2]);
         }
         else if(line.hasOption("get")){
             String[] vals = line.getOptionValues("get");
-            addKey(vals[0]);
+            getKey(vals[0], vals[1]);
         }
     }catch( ParseException exp ) {
         System.out.println( "Unexpected exception:" + exp.getMessage() );
     }
-    }
+        }
     /**
      * Method to setup server. Internally calls RaftCluster to setup the cluster with replicas and partition managers
      * @param noOfServers
      * @param noOfReplicas
      * @throws InterruptedException 
      */
-    private static void setupServers(int noOfServers, int noOfReplicas) throws InterruptedException {
-        RaftCluster.createCluster(noOfServers, noOfReplicas);
-        
-    }
     /**
      * adds key to DB
      * @param key
      * @param value 
      */
-    private static void addKey(String key, String value) {
+    private static void addKey(String name, String key, String value) throws FileNotFoundException {
+        RaftClient.SetValue(name, key, value);
+    }
+
+    private static void getKey(String val, String val0) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     /**
@@ -80,7 +83,5 @@ public class AtomixDB {
      * @param parseInt
      * @return String
      */
-    private static String addKey(String key) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    
 }

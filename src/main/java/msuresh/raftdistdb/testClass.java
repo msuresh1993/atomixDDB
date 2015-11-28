@@ -35,10 +35,9 @@ public class testClass {
         System.out.println("whattt");
         CompletableFuture<Atomix> future = replica.open();
         future.thenRun(() -> {
-            System.out.println("Replica started!"+replica.toString() + "   " + address.toString() + "    " + replica.context());      
+            System.out.println("Replica started!"+replica.toString() + "   " + address.toString() + "    " + replica.isOpen());      
         }); 
-        future.complete(replica);
-        future.join();
+        
        } 
        
 
