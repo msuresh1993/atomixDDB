@@ -5,15 +5,16 @@
  */
 package msuresh.raftdistdb;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.concurrent.ExecutionException;
+import static msuresh.raftdistdb.Constants.STATE_LOCATION;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-
 /**
  * The main driver class for AtomixDDB.
  * @author muthukumarsuresh
@@ -39,6 +40,11 @@ public class AtomixDB {
         opt = new Option("get", true, "Given a key gets the value from the DB");
         opt.setArgs(2);
         options.addOption(opt);
+        opt = new Option("clean", false, "Cleans the state information.");
+        options.addOption(opt);
+        opt = new Option("test", true, "Cleans the state information.");
+        opt.setArgs(2);
+        options.addOption(opt);
     try{
         CommandLineParser parser = new BasicParser();
         CommandLine line = null;
@@ -55,6 +61,13 @@ public class AtomixDB {
         else if(line.hasOption("get")){
             String[] vals = line.getOptionValues("get");
             getKey(vals[0], vals[1]);
+        }
+        else if(line.hasOption("clean")){
+            cleanState();
+        }
+        else if(line.hasOption("test")){
+            String[] vals = line.getOptionValues("test");
+            TestAtomix.createCluster(vals[0], Integer.parseInt(vals[1]));
         }
     }catch( ParseException exp ) {
         System.out.println( "Unexpected exception:" + exp.getMessage() );
@@ -75,8 +88,18 @@ public class AtomixDB {
         RaftClient.SetValue(name, key, value);
     }
 
-    private static void getKey(String val, String val0) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private static void getKey(String name, String key) throws FileNotFoundException {
+        RaftClient.GetValue(name,key);
+    }
+    public static void delete(File path) throws FileNotFoundException{
+        if (!path.exists()) throw new FileNotFoundException(path.getAbsolutePath());
+        for (File f : path.listFiles()){
+            f.delete();
+        }
+        
+    }
+    private static void cleanState() throws FileNotFoundException {
+        delete(new File(Constants.STATE_LOCATION));
     }
     /**
      * returns a value for the key if it exists

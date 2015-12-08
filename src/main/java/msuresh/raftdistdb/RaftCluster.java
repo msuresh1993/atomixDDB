@@ -16,8 +16,10 @@ import io.atomix.copycat.client.CopycatClient;
 import io.atomix.copycat.server.CopycatServer;
 import io.atomix.copycat.server.storage.Storage;
 import io.atomix.copycat.server.storage.StorageLevel;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,9 +35,18 @@ import org.json.simple.parser.JSONParser;
 /**
  * Cluster class for managing the Raft replicas and cluster managers 
  * @author muthukumarsuresh
+ * 
  */
 public class RaftCluster {
     private static int portId;
+
+    public static void createDefaultGlobal() throws IOException {
+        JSONObject obj = new JSONObject();
+        obj.put("currentCount",5000);
+        try (FileWriter file = new FileWriter(Constants.STATE_LOCATION + "global.info")) {
+			file.write(obj.toJSONString());
+        }
+    }
 //    static boolean flag = false;
     public static class ServerSetup extends Thread{
        private List<Address> members;
@@ -56,15 +67,14 @@ public class RaftCluster {
             .withDirectory(System.getProperty("user.dir") + "/logs/" + UUID.randomUUID().toString())
             .build())
             .build();
-           System.out.println("1");
            atomixList.add(atomix);
            atomix.open().join();
+//           DistributedMembershipGroup group = atomix.create("group", DistributedMembershipGroup::new).get();
            future.complete(42);
-           System.out.println("2");
-           
         }
-        
-    } 
+    }
+       
+    
     /**
      * creates the cluster 
      * @param nodesInCluster
@@ -82,8 +92,9 @@ public class RaftCluster {
             for(int i =0; i < numberOfPartitions; i++)
                 cluster.put(i,CreatePartitionCluster(nodesInCluster));
             JSONString.ConvertJSON2File(cluster, Constants.STATE_LOCATION + name + ".info");
-            
             UpdatePortNumber();
+            System.out.println("Database " + name + " has been created. ");
+            
         }catch(Exception ex){
             System.out.println(ex.toString());
         }
@@ -103,20 +114,6 @@ public class RaftCluster {
         }
         future.get();
         return arr;
-//        CopycatClient client = CopycatClient.builder(members)
-//        .withTransport(new NettyTransport())
-//        .build();
-//        client.open().join();
-//
-//        client.submit(new PutCommand("foo", "Hello world!")).get();   
-//        Object str = client.submit(new GetQuery("foo")).get();
-//        System.out.println((String)str);
-//        client.close();
-//        
-//        for(CopycatServer s : atomixList){
-//            s.close();
-//        }
-//        System.out.println("3");
     }
 
     private static void SetupServerAddress(int numReplicas, JSONObject[] lis, List<Address> members, JSONArray arr) {
@@ -130,8 +127,13 @@ public class RaftCluster {
         }
     }
 
-    private static void InitPortNumber() {
+    public static void InitPortNumber() {
         try {
+            File f= new File(Constants.STATE_LOCATION + "global.info");
+            if(!f.exists())
+            {
+                createDefaultGlobal();
+            }
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(new FileReader(Constants.STATE_LOCATION + "global.info"));
             JSONObject jsonObject = (JSONObject) obj;
@@ -143,6 +145,7 @@ public class RaftCluster {
     }
     private static void UpdatePortNumber() {
         try {
+            
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(new FileReader(Constants.STATE_LOCATION + "global.info"));
             JSONObject jsonObject = (JSONObject) obj;
